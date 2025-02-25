@@ -10,7 +10,7 @@ import Dashboard from './Pages/Dashboard';
 import { useAuth } from './context/AuthContext';
 import AddMarks from './Pages/AddMarks';
 import Landingpage from './lanidingpage/Landingpage';
-
+import { Layout } from './components/Layout';
 // Protected Route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +24,7 @@ const App: React.FC = () => {
         <Routes>
           {/* Set Landingpage as the default route */}
           <Route path="/" element={<Landingpage />} />
+            <Route path="/layout" element={<Layout />}/>
 
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
