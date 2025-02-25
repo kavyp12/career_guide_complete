@@ -2021,25 +2021,261 @@
 # if __name__ == '__main__':
 #     apfrom flask import Flask, request, jsonify, send_file
 
-from flask import Flask, request, jsonify, send_file, after_this_request
+# from flask import Flask, request, jsonify, send_file, after_this_request
+# from flask_cors import CORS
+# import tempfile
+# import logging
+# import json
+# import os
+# # In server.py, update the imports section:
+# from api.prompt_manager import extract_career_goal, generate_topic_reports
+# from dotenv import load_dotenv
+# from api.gemini_client import setup_gemini_api, generate_content
+# from api.prompt_manager import generate_topic_reports
+# from api.assessment_manager import AssessmentManager
+# from reports.report_builder import build_report_data
+# from reports.pdf_generator import generate_pdf_report
+
+# # Load environment variables first
+# load_dotenv()
+
+# # Configure logging
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(levelname)s: %(message)s',
+#     handlers=[logging.FileHandler('career_guidance.log'), logging.StreamHandler()]
+# )
+
+# app = Flask(__name__)
+# CORS(app)
+
+# # Initialize services
+# assessment_manager = AssessmentManager()
+
+# # Configure Gemini API on startup
+# try:
+#     setup_gemini_api()
+# except Exception as e:
+#     logging.error(f"Failed to initialize Gemini API: {str(e)}")
+#     exit(1)
+
+# @app.route('/api/submit-assessment', methods=['POST'])
+# def submit_assessment():
+#     """Handle assessment submission and generate career report."""
+#     try:
+#         data = request.get_json()
+        
+#         if not data or 'answers' not in data:
+#             return jsonify({"error": "Missing answers data"}), 400
+            
+#         if not isinstance(data['answers'], dict):
+#             return jsonify({"error": "Invalid answers format"}), 400
+            
+#         trait_scores = assessment_manager.calculate_scores(data['answers'])
+        
+#         student_name = data.get('studentName', '').strip() or 'Student'
+#         student_info = {
+#             'name': student_name,
+#             'age': str(data.get('age', 'Not provided')),
+#             'academic_info': str(data.get('academicInfo', 'Not provided')),
+#             'interests': str(data.get('interests', 'Not provided')),
+#             'achievements': [
+#                 str(data.get('answers', {}).get('question13', 'None')),
+#                 str(data.get('answers', {}).get('question30', 'None'))
+#             ]
+#         }
+        
+#         career_goal = extract_career_goal(list(data['answers'].values()))
+#         if not career_goal:
+#             return jsonify({"error": "Failed to extract career goal"}), 500
+            
+#         context = f"""
+#         Trait Scores: {json.dumps(trait_scores)}
+#         Student Info: {json.dumps(student_info)}
+#         """
+        
+#         report_sections = generate_topic_reports(
+#             context.strip(), 
+#             career_goal,
+#             student_info['name']
+#         )
+        
+#         if not report_sections:
+#             return jsonify({"error": "Failed to generate report sections"}), 500
+            
+#         report_data = build_report_data(
+#             student_info['name'],
+#             career_goal,
+#             report_sections
+#         )
+
+#         # Create temporary PDF file
+#         temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+#         temp_pdf.close()  # Close it so the file is accessible
+
+#         generate_pdf_report(report_data, temp_pdf.name)
+
+#         @after_this_request
+#         def cleanup(response):
+#             try:
+#                 os.remove(temp_pdf.name)
+#             except Exception as e:
+#                 logging.error(f"Failed to delete temporary file: {e}")
+#             return response
+
+#         return send_file(
+#             temp_pdf.name,
+#             mimetype='application/pdf',
+#             as_attachment=True,
+#             download_name=f"{student_name.replace(' ', '_')}_Career_Report.pdf"
+#         )
+
+#     except Exception as e:
+#         logging.error(f"Assessment submission error: {str(e)}", exc_info=True)
+#         return jsonify({
+#             "error": "Assessment processing failed",
+#             "details": str(e)
+#         }), 500
+
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=3001, debug=False)
+
+# from flask import Flask, request, jsonify, send_from_directory, after_this_request
+# from flask_cors import CORS
+# import logging
+# import json
+# import os
+# from dotenv import load_dotenv
+# from api.prompt_manager import extract_career_goal, generate_topic_reports
+# from api.gemini_client import setup_gemini_api
+# from api.assessment_manager import AssessmentManager
+# from reports.report_builder import build_report_data
+# from reports.pdf_generator import generate_pdf_report
+
+# # Load environment variables
+# load_dotenv()
+
+# # Configure logging
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(levelname)s: %(message)s',
+#     handlers=[logging.FileHandler('career_guidance.log'), logging.StreamHandler()]
+# )
+
+# app = Flask(__name__)
+# CORS(app)
+
+# # Initialize services
+# assessment_manager = AssessmentManager()
+
+# # Configure Gemini API on startup
+# try:
+#     setup_gemini_api()
+# except Exception as e:
+#     logging.error(f"Failed to initialize Gemini API: {str(e)}")
+#     exit(1)
+
+# # Define report storage directory
+# REPORTS_DIR = "E:/career-guide/backend/career-ai-service/reportss"
+# os.makedirs(REPORTS_DIR, exist_ok=True)
+
+# @app.route('/api/submit-assessment', methods=['POST'])
+# def submit_assessment():
+#     """Handle assessment submission and generate career report."""
+#     try:
+#         data = request.get_json()
+        
+#         if not data or 'answers' not in data:
+#             return jsonify({"error": "Missing answers data"}), 400
+            
+#         if not isinstance(data['answers'], dict):
+#             return jsonify({"error": "Invalid answers format"}), 400
+            
+#         # Calculate trait scores
+#         trait_scores = assessment_manager.calculate_scores(data['answers'])
+        
+#         # Extract student information
+#         student_name = data.get('studentName', 'Student').strip()
+#         student_info = {
+#             'name': student_name,
+#             'age': str(data.get('age', 'Not provided')),
+#             'academic_info': str(data.get('academicInfo', 'Not provided')),
+#             'interests': str(data.get('interests', 'Not provided')),
+#             'achievements': [
+#                 str(data.get('answers', {}).get('question13', 'None')),
+#                 str(data.get('answers', {}).get('question30', 'None'))
+#             ]
+#         }
+        
+#         # Extract career goal
+#         career_goal = extract_career_goal(list(data['answers'].values()))
+#         if not career_goal:
+#             return jsonify({"error": "Failed to extract career goal"}), 500
+        
+#         # Generate report sections
+#         context = f"""
+#         Trait Scores: {json.dumps(trait_scores)}
+#         Student Info: {json.dumps(student_info)}
+#         """
+#         report_sections = generate_topic_reports(context.strip(), career_goal, student_info['name'])
+        
+#         if not report_sections:
+#             return jsonify({"error": "Failed to generate report sections"}), 500
+        
+#         # Build report data
+#         report_data = build_report_data(student_info['name'], career_goal, report_sections)
+
+#         # Generate the filename
+#         pdf_filename = f"{student_name.replace(' ', '_')}_Career_Report.pdf"
+#         pdf_path = os.path.join(REPORTS_DIR, pdf_filename)
+
+#         # Generate the PDF
+#         generate_pdf_report(report_data, pdf_path)
+
+#         return jsonify({
+#             "message": "Report generated successfully",
+#             "report_url": f"/api/download-report/{pdf_filename}"
+#         }), 200
+
+#     except Exception as e:
+#         logging.error(f"Assessment submission error: {str(e)}", exc_info=True)
+#         return jsonify({
+#             "error": "Assessment processing failed",
+#             "details": str(e)
+#         }), 500
+
+# @app.route('/api/download-report/<filename>', methods=['GET'])
+# def download_report(filename):
+#     """Serve the generated career report PDF."""
+#     try:
+#         file_path = os.path.join(REPORTS_DIR, filename)
+#         if not os.path.exists(file_path):
+#             return jsonify({"error": "File not found"}), 404
+        
+#         return send_from_directory(REPORTS_DIR, filename, as_attachment=True)
+
+#     except Exception as e:
+#         logging.error(f"Error serving report {filename}: {str(e)}", exc_info=True)
+#         return jsonify({"error": "Failed to retrieve report"}), 500
+
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=3001, debug=False)
+
+
+from flask import Flask, request, jsonify, send_from_directory, after_this_request
 from flask_cors import CORS
-import tempfile
 import logging
 import json
 import os
-# In server.py, update the imports section:
-from api.prompt_manager import extract_career_goal, generate_topic_reports
 from dotenv import load_dotenv
-from api.gemini_client import setup_gemini_api, generate_content
-from api.prompt_manager import generate_topic_reports
+from api.prompt_manager import extract_career_goal, generate_topic_reports
+from api.gemini_client import setup_gemini_api
 from api.assessment_manager import AssessmentManager
 from reports.report_builder import build_report_data
 from reports.pdf_generator import generate_pdf_report
 
-# Load environment variables first
 load_dotenv()
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s: %(message)s',
@@ -2049,19 +2285,19 @@ logging.basicConfig(
 app = Flask(__name__)
 CORS(app)
 
-# Initialize services
 assessment_manager = AssessmentManager()
 
-# Configure Gemini API on startup
 try:
     setup_gemini_api()
 except Exception as e:
     logging.error(f"Failed to initialize Gemini API: {str(e)}")
     exit(1)
 
+REPORTS_DIR = "E:/career-guide/backend/career-ai-service/reportss"
+os.makedirs(REPORTS_DIR, exist_ok=True)
+
 @app.route('/api/submit-assessment', methods=['POST'])
 def submit_assessment():
-    """Handle assessment submission and generate career report."""
     try:
         data = request.get_json()
         
@@ -2073,7 +2309,7 @@ def submit_assessment():
             
         trait_scores = assessment_manager.calculate_scores(data['answers'])
         
-        student_name = data.get('studentName', '').strip() or 'Student'
+        student_name = data.get('studentName', 'Student').strip()
         student_info = {
             'name': student_name,
             'age': str(data.get('age', 'Not provided')),
@@ -2088,47 +2324,27 @@ def submit_assessment():
         career_goal = extract_career_goal(list(data['answers'].values()))
         if not career_goal:
             return jsonify({"error": "Failed to extract career goal"}), 500
-            
+        
         context = f"""
         Trait Scores: {json.dumps(trait_scores)}
         Student Info: {json.dumps(student_info)}
         """
-        
-        report_sections = generate_topic_reports(
-            context.strip(), 
-            career_goal,
-            student_info['name']
-        )
+        report_sections = generate_topic_reports(context.strip(), career_goal, student_info['name'])
         
         if not report_sections:
             return jsonify({"error": "Failed to generate report sections"}), 500
-            
-        report_data = build_report_data(
-            student_info['name'],
-            career_goal,
-            report_sections
-        )
+        
+        report_data = build_report_data(student_info['name'], career_goal, report_sections)
 
-        # Create temporary PDF file
-        temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-        temp_pdf.close()  # Close it so the file is accessible
+        pdf_filename = f"{student_name.replace(' ', '_')}_Career_Report.pdf"
+        pdf_path = os.path.join(REPORTS_DIR, pdf_filename)
 
-        generate_pdf_report(report_data, temp_pdf.name)
+        generate_pdf_report(report_data, pdf_path)
 
-        @after_this_request
-        def cleanup(response):
-            try:
-                os.remove(temp_pdf.name)
-            except Exception as e:
-                logging.error(f"Failed to delete temporary file: {e}")
-            return response
-
-        return send_file(
-            temp_pdf.name,
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name=f"{student_name.replace(' ', '_')}_Career_Report.pdf"
-        )
+        return jsonify({
+            "message": "Report generated successfully",
+            "report_url": f"/api/download-report/{pdf_filename}"
+        }), 200
 
     except Exception as e:
         logging.error(f"Assessment submission error: {str(e)}", exc_info=True)
@@ -2137,129 +2353,18 @@ def submit_assessment():
             "details": str(e)
         }), 500
 
+@app.route('/api/download-report/<filename>', methods=['GET', 'POST'])  # Allow both GET and POST
+def download_report(filename):
+    try:
+        file_path = os.path.join(REPORTS_DIR, filename)
+        if not os.path.exists(file_path):
+            return jsonify({"error": "File not found"}), 404
+        
+        return send_from_directory(REPORTS_DIR, filename, as_attachment=True)
+
+    except Exception as e:
+        logging.error(f"Error serving report {filename}: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to retrieve report"}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3001, debug=False)
-
-# from flask import Flask, request, jsonify, send_file
-# from flask_cors import CORS
-# import pymongo
-# import jwt
-# import datetime
-# import os
-# import logging
-# from threading import Thread
-# from dotenv import load_dotenv
-# # Add other necessary imports
-
-# load_dotenv()
-
-# # Database Setup
-# client = pymongo.MongoClient(os.getenv("MONGO_URI"))
-# db = client.get_database()
-# submissions = db.submissions
-
-# app = Flask(__name__)
-# CORS(app)
-
-# def get_user_id_from_token(token):
-#     try:
-#         payload = jwt.decode(token, os.getenv("JWT_SECRET"), algorithms=["HS256"])
-#         return payload["userId"]
-#     except Exception as e:
-#         logging.error(f"Token validation error: {str(e)}")
-#         raise
-
-# def process_submission_async(submission_id, data):
-#     try:
-#         # Update status to analyzing
-#         submissions.update_one(
-#             {"_id": submission_id},
-#             {"$set": {"status": "Analyzing"}}
-#         )
-        
-#         # Simulate processing time
-#         import time
-#         time.sleep(5)
-        
-#         # Your existing report generation logic here
-#         # ...
-        
-#         # Final status update
-#         submissions.update_one(
-#             {"_id": submission_id},
-#             {"$set": {
-#                 "status": "Final Report Successful",
-#                 "reportUrl": f"/api/reports/{submission_id}.doc"
-#             }}
-#         )
-        
-#     except Exception as e:
-#         submissions.update_one(
-#             {"_id": submission_id},
-#             {"$set": {"status": "Failed"}}
-#         )
-#         logging.error(f"Processing error: {str(e)}")
-
-# @app.route('/api/submit-assessment', methods=['POST'])
-# def submit_assessment():
-#     try:
-#         token = request.headers.get('Authorization', '').split('Bearer ')[-1]
-#         user_id = get_user_id_from_token(token)
-#         data = request.get_json()
-        
-#         # Create initial submission record
-#         submission = {
-#             "userId": user_id,
-#             "status": "Submitted",
-#             "createdAt": datetime.datetime.utcnow(),
-#             "reportUrl": None
-#         }
-#         submission_id = submissions.insert_one(submission).inserted_id
-        
-#         # Start background processing
-#         Thread(target=process_submission_async, args=(submission_id, data)).start()
-        
-#         return jsonify({
-#             "message": "Data submitted successfully",
-#             "submissionId": str(submission_id)
-#         }), 200
-
-#     except Exception as e:
-#         logging.error(f"Submission error: {str(e)}")
-#         return jsonify({"error": str(e)}), 500
-
-# @app.route('/api/report-status', methods=['GET'])
-# def get_report_status():
-#     try:
-#         token = request.headers.get('Authorization', '').split('Bearer ')[-1]
-#         user_id = get_user_id_from_token(token)
-        
-#         submission = submissions.find_one(
-#             {"userId": user_id},
-#             sort=[("createdAt", pymongo.DESCENDING)]
-#         )
-        
-#         if not submission:
-#             return jsonify({"status": "No submissions found"}), 404
-            
-#         return jsonify({
-#             "status": submission["status"],
-#             "downloadUrl": submission.get("reportUrl")
-#         }), 200
-
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
-
-# @app.route('/api/reports/<filename>', methods=['GET'])
-# def download_report(filename):
-#     try:
-#         # Implement proper file validation and path sanitization here
-#         return send_file(f"reports/{filename}", as_attachment=True)
-#     except FileNotFoundError:
-#         return jsonify({"error": "Report not found"}), 404
-
-# if __name__ == '__main__':
-#     # Create reports directory if it doesn't exist
-#     if not os.path.exists('reports'):
-#         os.makedirs('reports')
-#     app.run(host='0.0.0.0', port=3001)

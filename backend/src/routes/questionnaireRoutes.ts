@@ -85,48 +85,206 @@
 
 
 
-import express, { Request, Response, NextFunction } from 'express';
-import { verifyToken, AuthRequest } from '../middleware/authMiddleware';
+// import express, { Request, Response, NextFunction } from 'express';
+// import { verifyToken, AuthRequest } from '../middleware/authMiddleware';
+// import Questionnaire from '../models/QuestionnaireModel';
+// import User from '../models/User';
+// import axios from 'axios';
+
+// const router = express.Router();
+
+// // Helper function to handle async routes
+// const asyncHandler = (fn: (req: Request | AuthRequest, res: Response, next: NextFunction) => Promise<any>) => 
+//   (req: Request | AuthRequest, res: Response, next: NextFunction) => {
+//     Promise.resolve(fn(req, res, next)).catch(next);
+//   };
+
+// router.post('/submit-answers', verifyToken, asyncHandler(async (req: AuthRequest, res: Response) => {
+//   try {
+//     // Ensure user is authenticated
+//     if (!req.user) {
+//       return res.status(401).json({ message: 'Unauthorized' });
+//     }
+
+//     // Find the full user details
+//     const user = await User.findById(req.user.userId);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+
+//     // Check if user already submitted questionnaire
+//     const existingQuestionnaire = await Questionnaire.findOne({ userId: user._id });
+//     if (existingQuestionnaire) {
+//       return res.status(400).json({ message: 'Questionnaire already submitted' });
+//     }
+
+//     // Transform answers into the desired format
+//     const transformedAnswers = req.body.answers.reduce((acc: any, curr: any) => {
+//       acc[`question${curr.questionId}`] = curr.answer;
+//       return acc;
+//     }, {});
+
+//     // Create new questionnaire submission
+//     const newQuestionnaire = new Questionnaire({
+//       userId: user._id,
+//       studentName: `${user.firstName} ${user.lastName}`,
+//       age: user.age || '',
+//       academicInfo: `${user.standard} Grade`,
+//       interests: user.interests || '',
+//       answers: transformedAnswers
+//     });
+
+//     // Save questionnaire
+//     await newQuestionnaire.save();
+
+//     // Format data for AI service
+//     const aiServiceData = {
+//       studentName: newQuestionnaire.studentName,
+//       age: newQuestionnaire.age,
+//       academicInfo: newQuestionnaire.academicInfo,
+//       sportsInterests: newQuestionnaire.interests,
+//       answers: transformedAnswers
+//     };
+
+//     try {
+//       // Send data to AI service
+//       const aiResponse = await axios.post('http://localhost:3001/api/submit-assessment', aiServiceData);
+      
+//       // Return combined response
+//       res.status(201).json({ 
+//         message: 'Questionnaire submitted successfully',
+//         questionnaireId: newQuestionnaire._id,
+//         aiResponse: aiResponse.data
+//       });
+//     } catch (aiError) {
+//       console.error('AI service error:', aiError);
+//       // Still return success for questionnaire submission even if AI service fails
+//       res.status(201).json({ 
+//         message: 'Questionnaire submitted successfully, but AI processing failed',
+//         questionnaireId: newQuestionnaire._id,
+//         aiError: 'Failed to process with AI service'
+//       });
+//     }
+
+//   } catch (error) {
+//     console.error('Questionnaire submission error:', error);
+//     res.status(500).json({ message: 'Failed to submit questionnaire' });
+//   }
+// }));
+
+// // Route to get user's questionnaire and process with AI
+// router.get('/process-questionnaire/:id', verifyToken, asyncHandler(async (req: AuthRequest, res: Response) => {
+//   try {
+//     const questionnaire = await Questionnaire.findById(req.params.id);
+//     if (!questionnaire) {
+//       return res.status(404).json({ message: 'Questionnaire not found' });
+//     }
+
+//     // Format data for AI service
+//     const aiServiceData = {
+//       studentName: questionnaire.studentName,
+//       age: questionnaire.age,
+//       academicInfo: questionnaire.academicInfo,
+//       sportsInterests: questionnaire.interests,
+//       answers: questionnaire.answers
+//     };
+
+//     // Send to AI service
+//     const aiResponse = await axios.post('http://localhost:3001/api/submit-assessment', aiServiceData);
+    
+//     res.status(200).json({
+//       questionnaire,
+//       aiResponse: aiResponse.data
+//     });
+
+//   } catch (error) {
+//     console.error('Error processing questionnaire:', error);
+//     res.status(500).json({ message: 'Failed to process questionnaire' });
+//   }
+// }));
+
+// // Existing get-answers route remains the same
+// router.get('/get-answers', verifyToken, asyncHandler(async (req: AuthRequest, res: Response) => {
+//   try {
+//     if (!req.user) {
+//       return res.status(401).json({ message: 'Unauthorized' });
+//     }
+
+//     const questionnaire = await Questionnaire.findOne({ userId: req.user.userId });
+    
+//     if (!questionnaire) {
+//       return res.status(404).json({ message: 'No questionnaire found' });
+//     }
+
+//     res.status(200).json(questionnaire);
+//   } catch (error) {
+//     console.error('Error fetching questionnaire:', error);
+//     res.status(500).json({ message: 'Failed to fetch questionnaire' });
+//   }
+// }));
+
+// export default router;
+
+
+// E:\career-guide\backend\src\routes\questionnaireRoutes.ts
+
+import express, { Request, Response } from 'express';
+import { verifyToken } from '../middleware/authMiddleware';
 import Questionnaire from '../models/QuestionnaireModel';
 import User from '../models/User';
 import axios from 'axios';
 
+// Define interface for the extended request with user
+interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+  };
+}
+
 const router = express.Router();
 
-// Helper function to handle async routes
-const asyncHandler = (fn: (req: Request | AuthRequest, res: Response, next: NextFunction) => Promise<any>) => 
-  (req: Request | AuthRequest, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+// Helper function for async route handling
+const asyncHandler = (fn: Function) => (req: Request, res: Response) => {
+  Promise.resolve(fn(req, res)).catch((error) => {
+    console.error('Route error:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  });
+};
 
-router.post('/submit-answers', verifyToken, asyncHandler(async (req: AuthRequest, res: Response) => {
+// Submit answers route
+router.post('/submit-answers', verifyToken, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.userId;
+  
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized: No user ID found' });
+  }
+
   try {
-    // Ensure user is authenticated
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    // Find the full user details
-    const user = await User.findById(req.user.userId);
+    // Find user
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user already submitted questionnaire
-    const existingQuestionnaire = await Questionnaire.findOne({ userId: user._id });
+    // Check for existing questionnaire
+    const existingQuestionnaire = await Questionnaire.findOne({ userId });
     if (existingQuestionnaire) {
       return res.status(400).json({ message: 'Questionnaire already submitted' });
     }
 
-    // Transform answers into the desired format
-    const transformedAnswers = req.body.answers.reduce((acc: any, curr: any) => {
+    // Update user status to Analyzing
+    await User.findByIdAndUpdate(userId, { status: 'Analyzing' });
+
+    // Transform answers for AI service
+    const transformedAnswers = req.body.answers.reduce((acc: Record<string, any>, curr: any) => {
       acc[`question${curr.questionId}`] = curr.answer;
       return acc;
     }, {});
 
-    // Create new questionnaire submission
+    // Create new questionnaire
     const newQuestionnaire = new Questionnaire({
-      userId: user._id,
+      userId: userId,
       studentName: `${user.firstName} ${user.lastName}`,
       age: user.age || '',
       academicInfo: `${user.standard} Grade`,
@@ -134,92 +292,116 @@ router.post('/submit-answers', verifyToken, asyncHandler(async (req: AuthRequest
       answers: transformedAnswers
     });
 
-    // Save questionnaire
     await newQuestionnaire.save();
 
-    // Format data for AI service
+    // Prepare data for AI service
     const aiServiceData = {
       studentName: newQuestionnaire.studentName,
       age: newQuestionnaire.age,
       academicInfo: newQuestionnaire.academicInfo,
-      sportsInterests: newQuestionnaire.interests,
+      interests: newQuestionnaire.interests,
       answers: transformedAnswers
     };
 
     try {
-      // Send data to AI service
+      // Send to AI service
       const aiResponse = await axios.post('http://localhost:3001/api/submit-assessment', aiServiceData);
       
-      // Return combined response
-      res.status(201).json({ 
-        message: 'Questionnaire submitted successfully',
-        questionnaireId: newQuestionnaire._id,
-        aiResponse: aiResponse.data
-      });
+      if (aiResponse.data.report_url) {
+        // Extract filename from URL
+        const reportPath = aiResponse.data.report_url.split('/').pop();
+        
+        // Update user with report info
+        await User.findByIdAndUpdate(userId, {
+          status: 'Report Generated',
+          reportPath: reportPath
+        });
+
+        return res.status(201).json({ 
+          message: 'Questionnaire submitted and report generated successfully',
+          reportUrl: aiResponse.data.report_url
+        });
+      }
+
+      // If no report URL in response
+      throw new Error('No report URL received from AI service');
+
     } catch (aiError) {
       console.error('AI service error:', aiError);
-      // Still return success for questionnaire submission even if AI service fails
-      res.status(201).json({ 
-        message: 'Questionnaire submitted successfully, but AI processing failed',
-        questionnaireId: newQuestionnaire._id,
-        aiError: 'Failed to process with AI service'
+      
+      // Update user status to error
+      await User.findByIdAndUpdate(userId, { status: 'Error' });
+      
+      return res.status(500).json({ 
+        message: 'Failed to process with AI service',
+        error: aiError instanceof Error ? aiError.message : 'Unknown error'
       });
     }
 
   } catch (error) {
     console.error('Questionnaire submission error:', error);
-    res.status(500).json({ message: 'Failed to submit questionnaire' });
+    
+    // Update user status to error
+    await User.findByIdAndUpdate(userId, { status: 'Error' });
+    
+    return res.status(500).json({ 
+      message: 'Failed to submit questionnaire',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }));
 
-// Route to get user's questionnaire and process with AI
-router.get('/process-questionnaire/:id', verifyToken, asyncHandler(async (req: AuthRequest, res: Response) => {
+// Get report status route
+router.get('/report-status', verifyToken, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.userId;
+  
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized: No user ID found' });
+  }
+
   try {
-    const questionnaire = await Questionnaire.findById(req.params.id);
-    if (!questionnaire) {
-      return res.status(404).json({ message: 'Questionnaire not found' });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Format data for AI service
-    const aiServiceData = {
-      studentName: questionnaire.studentName,
-      age: questionnaire.age,
-      academicInfo: questionnaire.academicInfo,
-      sportsInterests: questionnaire.interests,
-      answers: questionnaire.answers
-    };
-
-    // Send to AI service
-    const aiResponse = await axios.post('http://localhost:3001/api/submit-assessment', aiServiceData);
-    
-    res.status(200).json({
-      questionnaire,
-      aiResponse: aiResponse.data
+    return res.status(200).json({
+      status: user.status || 'Pending',
+      reportPath: user.reportPath || null
     });
 
   } catch (error) {
-    console.error('Error processing questionnaire:', error);
-    res.status(500).json({ message: 'Failed to process questionnaire' });
+    console.error('Status fetch error:', error);
+    return res.status(500).json({ 
+      message: 'Failed to fetch report status',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }));
 
-// Existing get-answers route remains the same
-router.get('/get-answers', verifyToken, asyncHandler(async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+// Get answers route
+router.get('/get-answers', verifyToken, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user?.userId;
+  
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized: No user ID found' });
+  }
 
-    const questionnaire = await Questionnaire.findOne({ userId: req.user.userId });
+  try {
+    const questionnaire = await Questionnaire.findOne({ userId });
     
     if (!questionnaire) {
-      return res.status(404).json({ message: 'No questionnaire found' });
+      return res.status(404).json({ message: 'No questionnaire found for this user' });
     }
 
-    res.status(200).json(questionnaire);
+    return res.status(200).json(questionnaire);
+
   } catch (error) {
-    console.error('Error fetching questionnaire:', error);
-    res.status(500).json({ message: 'Failed to fetch questionnaire' });
+    console.error('Questionnaire fetch error:', error);
+    return res.status(500).json({ 
+      message: 'Failed to fetch questionnaire',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }));
 

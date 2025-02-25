@@ -425,7 +425,7 @@ export const Signup: React.FC = () => {
     setIsLoading(true);
     try {
       await signup(formData);
-      navigate('/questionnaire');
+      navigate('/add-marks');
     } catch (err) {
       setError('Signup failed. Please try again.');
     } finally {

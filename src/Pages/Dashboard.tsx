@@ -70,8 +70,8 @@
 //     </div>
 //   );
 // };
-
-// export default Dashboard;
+// pages/Dashboard.tsx
+// Replace your existing Dashboard component with this updated version
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -81,25 +81,74 @@ const Dashboard: React.FC = () => {
   const [reportPath, setReportPath] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStatus = async () => {
+    const checkReportStatus = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("/api/dashboard/status", {
-          headers: { "Authorization": `Bearer ${token}` },
+        const response = await fetch('/api/questionnaire/report-status', {
+          headers: { 
+            "Authorization": `Bearer ${token}`,
+          }
         });
 
         if (!response.ok) throw new Error("Failed to fetch status");
-
+        
         const data = await response.json();
         setStatus(data.status);
-        setReportPath(data.report_path);
+        setReportPath(data.reportPath);
+
+        // Continue polling if still analyzing
+        if (data.status === 'Analyzing') {
+          setTimeout(checkReportStatus, 10000); // Poll every 10 seconds
+        }
       } catch (error) {
-        console.error("Error fetching status:", error);
+        console.error("Error checking report status:", error);
       }
     };
 
-    fetchStatus();
+    checkReportStatus();
   }, []);
+
+  const handleDownload = async () => {
+    if (!user || !user.firstName || !user.lastName) {
+      console.error("User details are missing.");
+      return;
+    }
+  
+    // Generate the expected filename based on user name
+    const reportFilename = `${user.firstName}_${user.lastName}_Career_Report.pdf`.replace(/\s+/g, "_");
+  
+    try {
+      const token = localStorage.getItem("token");
+  
+      // Use the correct backend URL and change method to GET
+      const backendUrl = `http://localhost:3001/api/download-report/${reportFilename}`;
+  
+      const response = await fetch(backendUrl, {
+        method: "GET",  // Change from POST to GET
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) throw new Error("Failed to download report");
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = reportFilename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading report:", error);
+      alert("Failed to download report. Please try again.");
+    }
+  };
+  
+  
+
+
 
   return (
     <div className="min-h-screen bg-gray-100" style={{ height:"100vh" ,width:"100vw"}}>
@@ -144,9 +193,9 @@ const Dashboard: React.FC = () => {
 
               {reportPath && (
                 <div className="mt-6">
-                  <a href={`/api/dashboard/download-report`} download className="bg-blue-500 text-white px-4 py-2 rounded-md">
+                  <button onClick={handleDownload} className="bg-blue-500 text-white px-4 py-2 rounded-md">
                     Download Report
-                  </a>
+                  </button>
                 </div>
               )}
             </div>

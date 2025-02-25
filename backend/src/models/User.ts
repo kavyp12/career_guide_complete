@@ -90,6 +90,8 @@ export interface IUser extends Document {
   age?: string;
   interests?: string;
   academicInfo: string;
+  status: 'Pending' | 'Analyzing' | 'Report Generated' | 'Error';
+  reportPath?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -103,7 +105,15 @@ const userSchema = new mongoose.Schema<IUser>({
   standard: { type: String, required: true },
   age: { type: String, required: true },
   interests: { type: String, required: true },
-  academicInfo: { type: String, required: true }
+  academicInfo: { type: String, required: true },
+  status: { 
+    type: String, 
+    enum: ['Pending', 'Analyzing', 'Report Generated', 'Error'],
+    default: 'Pending'
+  },
+  reportPath: { 
+    type: String 
+  }
 }, { timestamps: true });
 
 userSchema.pre<IUser>('save', async function(next) {

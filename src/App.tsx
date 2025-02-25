@@ -8,6 +8,8 @@ import Questionnaire from './Pages/Questionnaire';
 import AdminPanel from './Pages/AdminPanel';
 import Dashboard from './Pages/Dashboard';
 import { useAuth } from './context/AuthContext';
+import AddMarks from './Pages/AddMarks';
+import Landingpage from './lanidingpage/Landingpage';
 
 // Protected Route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -20,6 +22,9 @@ const App: React.FC = () => {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Set Landingpage as the default route */}
+          <Route path="/" element={<Landingpage />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route
@@ -29,6 +34,18 @@ const App: React.FC = () => {
                 <Questionnaire />
               </ProtectedRoute>
             }
+          />
+          <Route 
+            path="/add-marks"
+            element={
+              <ProtectedRoute>
+                <AddMarks />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/landingpage"
+            element={<Landingpage />}
           />
           <Route
             path="/dashboard"
@@ -46,7 +63,6 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </AuthProvider>
