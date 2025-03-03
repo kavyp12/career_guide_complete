@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+// Use VITE_API_URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
 
   const signup = async (formData: any) => {
-    const response = await fetch(`${API_BASE}/auth/signup`, {
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
@@ -18,7 +19,7 @@ export const useAuth = () => {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE}/auth/login`, {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),

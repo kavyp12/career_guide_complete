@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, AuthContextType } from '../types/types';
 
-const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+// Use VITE_API_URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -17,8 +18,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const verifyToken = async () => {
       if (token) {
         try {
-          const response = await fetch(`${API_BASE}/auth/profile`, {
-            headers: { Authorization: `Bearer ${token}` }
+          const response = await fetch(`${API_URL}/api/auth/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (!response.ok) {
             logout();
@@ -38,18 +39,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
-  
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setToken(data.token);
@@ -62,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (userData: Omit<User, 'id' | 'status'> & { password: string }) => {
     try {
-      const response = await fetch(`${API_BASE}/auth/signup`, {
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -94,8 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = async () => {
     if (token) {
       try {
-        const response = await fetch(`${API_BASE}/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const response = await fetch(`${API_URL}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
           const userData = await response.json();
@@ -112,17 +113,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        signup, 
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        signup,
         logout,
         refreshUser,
         isAuthenticated: !!token,
         isAdmin: user?.email.endsWith('@admin.com') || false,
         loading,
-        token
+        token,
       }}
     >
       {!loading && children}
@@ -139,60 +140,3 @@ export const useAuth = () => {
 };
 
 export default AuthProvider;
-
-// import React, { createContext, useState, useContext, ReactNode } from 'react';
-// import axios from 'axios';
-
-// interface AuthContextType {
-//   user: any;
-//   signup: (userData: any) => Promise<void>;
-//   login: (email: string, password: string) => Promise<void>;
-//   logout: () => void;
-// }
-
-// const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-//   const [user, setUser] = useState(null);
-
-//   const signup = async (userData: any) => {
-//     try {
-//       const response = await axios.post(`${import.meta.env.VITE_API_BASE}/auth/signup`, userData);
-//       setUser(response.data.user);
-//       localStorage.setItem('token', response.data.token);
-//     } catch (error) {
-//       console.error('Signup failed:', error);
-//       throw error;
-//     }
-//   };
-
-//   const login = async (email: string, password: string) => {
-//     try {
-//       const response = await axios.post(`${import.meta.env.VITE_API_BASE}/auth/login`, { email, password });
-//       setUser(response.data.user);
-//       localStorage.setItem('token', response.data.token);
-//     } catch (error) {
-//       console.error('Login failed:', error);
-//       throw error;
-//     }
-//   };
-
-//   const logout = () => {
-//     setUser(null);
-//     localStorage.removeItem('token');
-//   };
-
-//   return (
-//     <AuthContext.Provider value={{ user, signup, login, logout }}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-// export const useAuth = () => {
-//   const context = useContext(AuthContext);
-//   if (!context) {
-//     throw new Error('useAuth must be used within an AuthProvider');
-//   }
-//   return context;
-// };
