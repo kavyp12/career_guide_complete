@@ -259,7 +259,7 @@ const Dashboard: React.FC = () => {
       const token = localStorage.getItem("token");
   
       // Use the correct backend URL and change method to GET
-      const backendUrl = `http://localhost:3001/api/download-report/${reportFilename}`;
+      const backendUrl = `http://16.16.129.30:3001/api/download-report/${reportFilename}`;
   
       const response = await fetch(backendUrl, {
         method: "GET",

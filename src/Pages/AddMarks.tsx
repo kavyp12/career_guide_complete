@@ -667,7 +667,7 @@ const MarksEntry = () => {
         return;
       }
 
-      const response = await fetch('http://16.16.129.30/api/marks', {
+      const response = await fetch('http://16.16.129.30:3000/api/marks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

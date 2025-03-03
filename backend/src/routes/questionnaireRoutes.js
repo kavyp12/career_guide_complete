@@ -248,7 +248,7 @@ router.post('/submit-answers', authMiddleware_1.verifyToken, asyncHandler(async 
         };
         try {
             // Send to AI service
-            const aiResponse = await axios_1.default.post('http://localhost:3001/api/submit-assessment', aiServiceData);
+            const aiResponse = await axios_1.default.post('http://16.16.129.30:3001/api/submit-assessment', aiServiceData);
             if (aiResponse.data.report_url) {
                 // Extract filename from URL
                 const reportPath = aiResponse.data.report_url.split('/').pop();
