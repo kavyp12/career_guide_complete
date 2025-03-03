@@ -28,7 +28,8 @@
 
     /* Decorators (Enable if needed for NestJS, TypeORM, etc.) */
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "outDir": "dist"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
