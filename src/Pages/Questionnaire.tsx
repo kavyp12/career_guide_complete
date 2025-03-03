@@ -697,6 +697,7 @@ import { useAuth } from '../context/AuthContext';
 import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { Question as QuestionType, QuestionResponse } from '../types/types';
 
+const API_URL = import.meta.env.VITE_API_URL;
 const Questionnaire: React.FC = () => {
   const navigate = useNavigate();
   useAuth();
@@ -1318,8 +1319,8 @@ const Questionnaire: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
   
-      // Submit answers
-      const response = await fetch('/api/questionnaire/submit-answers', {
+      // Submit answers using VITE_API_URL
+      const response = await fetch(`${API_URL}/api/questionnaire/submit-answers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
