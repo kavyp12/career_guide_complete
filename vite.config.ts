@@ -9,7 +9,7 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
-      '/ai': { // Add this if testing AI locally
+      '/ai': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
@@ -18,8 +18,9 @@ export default defineConfig({
       'localhost',
       'enhc.tech',
       'www.enhc.tech',
-      '16.16.129.30', // Optional, for IP access
+      '16.16.129.30', // Your EC2 IP
     ],
+    host: true, // Allow external access during dev
   },
   build: {
     outDir: 'dist',
