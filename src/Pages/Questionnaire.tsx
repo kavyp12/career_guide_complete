@@ -1318,30 +1318,27 @@ const Questionnaire: React.FC = () => {
   const submitAnswers = async () => {
     try {
       const token = localStorage.getItem('token');
-  
-      // Submit answers using VITE_API_URL
-      const response = await fetch(`${API_URL}/api/questionnaire/submit-answers`, {
+      const response = await fetch('/api/questionnaire/submit-answers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          answers,
-        }),
+        body: JSON.stringify({ answers }),
       });
   
+      const data = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit answers');
+        throw new Error(data.message || 'Failed to submit answers');
       }
   
-      const data = await response.json();
       console.log('Questionnaire submitted:', data);
-  
-      // Show success message and redirect
-      alert('Questionnaire submitted successfully! Redirecting to dashboard...');
-      navigate('/dashboard');
+      if (data.reportUrl) {
+        alert('Questionnaire submitted successfully! Redirecting to dashboard...');
+        navigate('/dashboard');
+      } else {
+        throw new Error('Report generation failed');
+      }
     } catch (error) {
       console.error('Failed to submit answers:', error);
       alert(error instanceof Error ? error.message : 'Unable to submit questionnaire. Please try again.');

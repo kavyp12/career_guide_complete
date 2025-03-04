@@ -8,6 +8,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+
 // const router = express.Router();
 // // Helper function to handle async routes
 // const asyncHandler = (fn: (req: Request | AuthRequest, res: Response, next: NextFunction) => Promise<any>) => 
@@ -248,7 +249,7 @@ router.post('/submit-answers', authMiddleware_1.verifyToken, asyncHandler(async 
         };
         try {
             // Send to AI service
-            const aiResponse = await axios_1.default.post('http://16.16.129.30:3001/api/submit-assessment', aiServiceData);
+            const aiResponse = await axios_1.default.post('https://p.enhc.tech/api/submit-assessment', aiServiceData);
             if (aiResponse.data.report_url) {
                 // Extract filename from URL
                 const reportPath = aiResponse.data.report_url.split('/').pop();

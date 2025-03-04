@@ -486,7 +486,7 @@ const Dashboard: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       // Use reportPath directly from the backend response
-      const backendUrl = `http://16.16.129.30:3001/api/download-report/${reportPath}`;
+      const backendUrl = `.21.199.124:3001/api/download-report/${reportPath}`;
 
       const response = await fetch(backendUrl, {
         method: "GET",
