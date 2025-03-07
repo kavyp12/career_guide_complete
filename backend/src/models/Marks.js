@@ -39,26 +39,33 @@ const MarksSchema = new mongoose_1.Schema({
     userId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
     },
-    subjects: [{
+    standard: {
+        type: Number,
+        required: true,
+    },
+    subjects: [
+        {
             subjectName: {
                 type: String,
-                required: true
+                required: true,
             },
             marks: {
                 type: Number,
-                required: true
+                required: true,
             },
             totalMarks: {
                 type: Number,
                 required: true,
-                default: 100
-            }
-        }],
+                default: 100,
+            },
+        },
+    ],
     createdAt: {
         type: Date,
-        default: Date.now
-    }
+        default: Date.now,
+    },
 });
+MarksSchema.index({ userId: 1, standard: 1 }, { unique: true });
 exports.default = mongoose_1.default.model('Marks', MarksSchema);
